@@ -33,9 +33,11 @@ class Gaussian_generator(object):
         seed : int
             RNG seed
         """
+        # Fix seed for reproducibility
+        np.random.seed(seed)
+        
         # Create factor loading matrix W
         # Constraints on F: orthonormal and non-negative
-        np.random.seed(seed)
         indexes = np.random.randint(0, k, size=p)
         self.W = np.random.uniform(0, 1, size=(p, k))
         self.W = self.W * np.eye(k)[indexes]
