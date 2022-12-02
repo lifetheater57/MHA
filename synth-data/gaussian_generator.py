@@ -46,6 +46,8 @@ class Gaussian_generator(object):
         # Create latent variable covariance G_i
         # We use a triangular matrix to enforce a positive semi-definite covariance matrix
         self.G = [np.tril(X) @ np.tril(X).T for X in np.random.normal(size=(N, k, k))]
+        
+        self.v = np.random.normal(size=N)
 
         # assert constraints on W and G
         assert all(np.linalg.norm(self.W, axis=0) == np.ones(k)), \
