@@ -10,7 +10,7 @@ class Gaussian_generator(object):
     G : array([N, k, k])
         Covariance structures of latent variables
     v : array([N])
-        No
+        Class-wise noise
 
     Yields
     ------
@@ -41,10 +41,18 @@ class Gaussian_generator(object):
         self.W = self.W * np.eye(k)[indexes]
         self.W /= np.linalg.norm(self.W, axis=0)
 
-        # TODO: add assert constraints W is orthonormal, G is symmetric with negative and positive correlations
-
         # Create latent variable covariance G_i
+        # We use a triangular matrix to enforce a positive semi-definite covariance matrix
         self.G = [np.tril(X) @ np.tril(X).T for X in np.random.normal(size=(N, k, k))]
+
+        # assert constraints on W and G
+        assert all(np.linalg.norm(self.W, axis=0) == np.ones(k)), \
+            "Columns of W are not unit vectors."
+        assert all(self.W.T @ self.W == np.eye(k)), \
+            "W is not orthogonal."
+        assert all([G_i == G_i.T for G_i in G]), \
+            "Covariance matrices are not symmetrical."
+        
 
     def __iter__(self):
         return self
