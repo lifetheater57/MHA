@@ -61,15 +61,7 @@ class Gaussian_generator(object):
         return self.next
 
     def next(self):
-        Z = np.random.multivariate_normal()
+        pass
+        # not finish
+        #self.Z = np.random.multivariate_normal(0, self.G)
 
-
-    def __init__(self, N, p, k, seed):
-        #TODO: create factor loading matrix W
-        # constraints on F: orthonormal and non-negative
-
-        #TODO: for i in classes
-            #TODO: create latent variable covariance G_i
-
-    # while True:
-        #TODO: yield X

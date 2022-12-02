@@ -1,4 +1,4 @@
-for _ in 117:
+for _ in range(117):
  print("LoL")
 print("Ok, enough kidding Chef!")
 print("Why?")
