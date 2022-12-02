@@ -1,7 +1,7 @@
 import numpy as np
 
-class Gaussian_generator(self, N, p, k, seed):
-    """ Gaussian generator for multivariate data
+class Gaussian_generator(object):
+    """ Generator for high-dimensional gaussian data
     
     Parameters
     ----------
@@ -17,7 +17,7 @@ class Gaussian_generator(self, N, p, k, seed):
 
     Attributes
     ----------
-    F : array([p, k])
+    W : array([p, k])
         Factor loadings
     Gs : array([N, k, k])
         Covariance structures of latent variables
@@ -28,9 +28,13 @@ class Gaussian_generator(self, N, p, k, seed):
         Generated data (1 p-dimensional observation per class)
 
     """
-    #TODO: create factor loading matrix F
-    #TODO: for i in classes
-        #TODO: create latent variable covariance G_i
+
+    def __init__(self, N, p, k, seed):
+        #TODO: create factor loading matrix W
+        # constraints on F: orthonormal and non-negative
+
+        #TODO: for i in classes
+            #TODO: create latent variable covariance G_i
 
     # while True:
         #TODO: yield X
