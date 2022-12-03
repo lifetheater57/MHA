@@ -71,7 +71,7 @@ class Gaussian_generator(object):
         return self.next
 
     def next(self):
-        pass
-        # not finish
-        #self.Z = np.random.multivariate_normal(0, self.G)
+        Z = [np.random.multivariate_normal(0, G_i, size=self.p) for G_i in self.G]
+        X = [np.random.multivariate_normal(self.W @ z_i, v_i * np.eye(self.k), size=self.p) for z_i, v_i in zip(Z, self.v)]
+        return X
 
