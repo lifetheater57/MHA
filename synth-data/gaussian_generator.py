@@ -38,6 +38,10 @@ class Gaussian_generator(object):
         
         epsilon = 1e-10
 
+        self.N = N
+        self.p = p
+        self.k = k
+
         # Create factor loading matrix W
         # Constraints on F: orthonormal and non-negative
         indexes = np.random.randint(0, k, size=p)
