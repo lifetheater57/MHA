@@ -36,6 +36,8 @@ class Gaussian_generator(object):
         # Fix seed for reproducibility
         np.random.seed(seed)
         
+        epsilon = 1e-10
+
         # Create factor loading matrix W
         # Constraints on F: orthonormal and non-negative
         indexes = np.random.randint(0, k, size=p)
@@ -50,11 +52,11 @@ class Gaussian_generator(object):
         self.v = np.random.normal(size=N)
 
         # assert constraints on W and G
-        assert all(np.linalg.norm(self.W, axis=0) == np.ones(k)), \
+        assert (np.linalg.norm(self.W, axis=0) - np.ones(k) < epsilon).all(), \
             "Columns of W are not unit vectors."
-        assert all(self.W.T @ self.W == np.eye(k)), \
+        assert (np.abs((self.W.T @ self.W) - np.eye(k)) < epsilon).all(), \
             "W is not orthogonal."
-        assert all([G_i == G_i.T for G_i in G]), \
+        assert np.array([G_i == G_i.T for G_i in self.G]).all(), \
             "Covariance matrices are not symmetrical."
         
 
