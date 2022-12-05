@@ -19,7 +19,7 @@ class GaussianGenerator(object):
 
     """
 
-    def __init__(self, N, p, k, seed):
+    def __init__(self, N: int, p: int, k: int, seed: int):
         """
         Parameters
         ----------
