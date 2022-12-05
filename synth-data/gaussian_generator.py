@@ -1,6 +1,6 @@
 import numpy as np
 
-class Gaussian_generator(object):
+class GaussianGenerator(object):
     """ Generator for high-dimensional gaussian data
     
     Attributes
