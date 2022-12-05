@@ -53,7 +53,7 @@ class GaussianGenerator(object):
         # We use a triangular matrix to enforce a positive semi-definite covariance matrix
         self.G = [np.tril(X) @ np.tril(X).T for X in np.random.normal(size=(N, k, k))]
         
-        self.v = np.random.normal(size=N)
+        self.v = np.random.normal(size=N)**2
 
         # assert constraints on W and G
         assert (np.linalg.norm(self.W, axis=0) - np.ones(k) < epsilon).all(), \
