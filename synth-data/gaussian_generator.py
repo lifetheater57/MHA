@@ -1,4 +1,7 @@
+from typing import Tuple, Union
+
 import numpy as np
+
 
 class GaussianGenerator(object):
     """ Generator for high-dimensional gaussian data
@@ -19,7 +22,7 @@ class GaussianGenerator(object):
 
     """
 
-    def __init__(self, N: int, p: int, k: int, seed: int):
+    def __init__(self, N: int, p: int, k: int, seed: int, size: Union[int, Tuple[int]] = 1):
         """
         Parameters
         ----------
@@ -32,6 +35,8 @@ class GaussianGenerator(object):
             Number of latent variables
         seed : int
             RNG seed
+        size : int|tuple(int)
+            The size of the samples generated for each class. The shape of the output is `N x size x p`.
         """
         # Fix seed for reproducibility
         np.random.seed(seed)
@@ -41,6 +46,7 @@ class GaussianGenerator(object):
         self.N = N
         self.p = p
         self.k = k
+        self.size = size
 
         # Create factor loading matrix W
         # Constraints on F: orthonormal and non-negative
@@ -71,7 +77,7 @@ class GaussianGenerator(object):
         return self.next()
 
     def next(self):
-        Z = [np.random.multivariate_normal(np.zeros(G_i.shape[0]), G_i, size=1) for G_i in self.G]
-        X = np.array([np.random.multivariate_normal(self.W @ z_i.T[:, 0], v_i * np.eye(self.p), size=1) for z_i, v_i in zip(Z, self.v)])
+        Z = [np.random.multivariate_normal(np.zeros(G_i.shape[0]), G_i, size=self.size) for G_i in self.G]
+        X = np.array([[np.random.multivariate_normal(self.W @ z_i, v_i * np.eye(self.p)) for z_i in Z_i] for Z_i, v_i in zip(Z, self.v)])
         return X
 
