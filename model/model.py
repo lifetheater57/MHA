@@ -1,3 +1,4 @@
+import numpy as np
 # Helper functions
 def relu(X):
     X[X < 0] = 0
