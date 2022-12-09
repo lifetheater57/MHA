@@ -1,5 +1,18 @@
-def relu(x):
-    return np.maximum(0,x)
+# Helper functions
+def relu(X):
+    X[X < 0] = 0
+    return X
+
+def project_positive(X):
+    max_idx = X.argmax(axis=1)
+    for i in range(X.shape[0]):
+        X[i, X[i,:] < X[i, max_idx[i]]] = 0
+        X = relu(X)
+    return X
+
+def normalize_cols(X, eps=0.001):
+    X = X / (np.linalg.norm(X, axis=0) + eps)
+    return X
 
 class Connectivity:
     
@@ -13,26 +26,52 @@ class Connectivity:
             Nb of latent variables
         """
             
-        self.N, self.m, self.p = X.shape
+        self.N, self.n, self.p = X.shape
         
-        self.X = X 
+        self.X = X
         
         self.k = k 
         
-        self.v = np.ones(self.N) # change to init variance of samples?
-            
-        self.W = np.zeros((self.p, self.k))
-            
+        # self.v = np.ones(self.N) # Not included in this version
+                
         self.G = np.concatenate([np.eye(k)[np.newaxis, ...]\
-                                 for i in range(self.N)], axis=0) 
-
+                                 for i in range(self.N)], axis=0)
+        
+        self.A = np.array([self.G[i] @ np.linalg.pinv(self.G[i] + np.eye(self.k)) for i in range(self.N)])
+        
+        self.K = np.array([self.X[i].T @ self.X[i] for i in range(self.N)])
+        
+        self.initialize_W()
+         
         self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T\
-                                       + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
+                                       + np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
         
-        self.lagrange = np.eye(k)
+        self.lagrange = np.zeros((self.k,self.k))
+        
+    def initialize_W(self):
+        
+        X_cov = np.zeros((self.p, self.p))
+        
+        for i in range(self.N):
+            
+            X_cov += 1/self.N * self.K[i]
+        
+        # initialize W
+        evd_X_cov = np.linalg.eig(X_cov)
+        
+        self.W = evd_X_cov[1][:, evd_X_cov[0].argsort()[::-1][:k]]
+        
+        # since evectors are sign invariant
+        for i in range(self.W.shape[1]):
+            if np.sum(self.W[:,i]) < 0:
+                
+                self.W[:,i] *= -1
+                
+        self.W = relu(self.W)
 
-    def log_likelihood(self):
-        
+    
+    def negative_log_likelihood(self):
+
         log_likelihood = 0
         
         for i in range(self.N):
@@ -45,68 +84,126 @@ class Connectivity:
             
             mahalanobis = np.einsum('ij, ji -> i', self.X[i], S)
             
-            log_likelihood += -0.5*(cst + det_sigma + mahalanobis)
+            log_likelihood += 0.5*(cst + det_sigma + mahalanobis)
         
-        return log_likelihood.sum()
+        return log_likelihood.sum()/(self.n * self.N)
+    
+    
+    def update_A(self):
         
-    def fit(self, lr = 1e-3, reg = 1e-2, tol=1e-6):
+        W = project_positive(self.W).copy()
         
-        old_likelihood = np.inf
-        new_likelihood = 0
+        for i in range(self.N):
+            A_new = np.eye(self.k) - np.linalg.pinv(W.T @ self.K[i] @ W)
         
-        W_grad = np.zeros((self.p, self.k))
-        log_likelihoods = []
-        while np.abs(new_likelihood - old_likelihood) > tol:
+            # check for negative eigenvalues
+            if np.min(np.linalg.eig(A_new)[0]) <= 0:
+                A_new += np.eye(self.k)* np.abs(np.min(np.linalg.eig(A_new)[0]) + 0.01)
+            
+            self.A[i] = A_new
+    
+    def armijo_Update(self, W_grad, A_tilde, alpha = 0.5, c = 0.001, max_iter = 100):
+        
+        stopBackTracking = False
+        W_grad = normalize_cols(W_grad)
+        iter = 0
+        
+        while stopBackTracking==False:
+            
+            W_new = self.W - alpha * W_grad
+            
+            W_new = relu(W_new)
+            W_new = normalize_cols(W_new)
+            
+            old_obj = 0
+            new_obj  = 0
+            
             for i in range(self.N):
-                v_i = self.v[i]
                 
-                d, V = np.linalg.eig(self.G[i])
+                old_obj += np.diag(self.W.T @ self.K[i] @ self.W @ A_tilde[i]).sum()
+                new_obj += np.diag(W_new.T @ self.K[i] @ W_new @ A_tilde[i]).sum()
                 
-                A = V @ np.diag(d/(d + v_i)) @ V.T
+            if new_obj <= old_obj + c*alpha*(np.diag(np.diag(W_grad.T @ (W_new - self.W))).sum() + 0.001):
                 
-                D_tilde = V @ np.diag(-d/(d+v_i)**2) @ V.T
+                stopBackTracking = True
                 
-                D_bar = V.T @ np.diag(-2*d**2/(d+v_i)**3) @ V.T
+            else:
                 
-                H_1 = 2*A - v_i*D_tilde - A @ A + v_i * D_bar
+                alpha /= 2
+                iter += 1
                 
-                H_2 = -v_i**-2 * np.trace(A - v_i*D_tilde)
-                
-                K = self.X[i].T @ self.X[i]
+                if iter > max_iter:
                     
-                # G_i update
-                self.G[i] = self.W.T @ K @ self.W - v_i * np.eye(self.k) 
+                    stopBackTracking = True
                 
-                # v_i update gradient descent
-                v_term_1 = v_i**-3 * np.trace(v_i* np.eye(self.p) - K)
-                v_term_2 = v_i**-3 * np.trace(self.W.T @ K @ self.W @ H_1)
-                
-                self.v[i] -= lr * (v_term_1 + v_term_2 - H_2)
-                # add ith term to W gradient
-                
-                W_grad += v_i**-2 * K @ self.W @ (1/2 * A @ A - A)
-                                              
-            # update W                                 
+        return W_new
+    
+    def fit(self, lr = 0.001, reg = 1, c = 0.01, alpha = 0.5, tol=1e-2, max_iter = 1000, use_armijo=True, estimate_v=False):
+        
+        new_likelihood = float('-inf')
+        old_likelihood = 0
+        log_likelihoods = []
+        W_old = np.copy(self.W)
+        
+        self.update_A()
+        
+        for iter in range(max_iter):
+
+#            print(f"iteration {iter}")
+#            print("LL =",new_likelihood)
+            
+            A_tilde = np.array([0.5*A_i @ A_i - A_i for A_i in self.A])
+            
+            # Compute W_grad
+            W_grad = np.zeros(self.W.shape)
+            
+            for i in range(self.N):
+                W_grad += 1/self.N * self.K[i] @ self.W @ A_tilde[i]
+            
             penalty = reg * (self.W @ self.W.T @ self.W - self.W)                                 
             ortho = self.W @ self.lagrange
-                                              
-            self.W = relu(self.W - lr*(W_grad + penalty + ortho)) # projection onto the non-negative orthant
-                                              
-            self.lagrange += reg * (self.W.T @ self.W - np.eye(self.k))
-                                              
-            # update sigmas using all other updates
-            self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T\
-                                       + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
-                                              
+            W_grad += penalty + ortho
             
+            # Compute gradient update
+            if use_armijo:
+                self.W = self.armijo_Update(W_grad, A_tilde, alpha, c, max_iter)
+            else:
+                self.W -= lr * W_grad
+            
+            self.W = project_positive(self.W)
+            self.W = relu(self.W) # to ensure non-negativity and orthonormality 
+            self.W = normalize_cols(self.W)
+            
+            self.update_A()
+            
+            self.lagrange += reg * (self.W.T @ self.W - np.eye(self.k))
+            
+            # update G and sigmas
+            self.G = np.array([self.W.T @ self.K[i] @ self.W - np.eye(self.k) for i in range(self.N)])
+            
+            self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T\
+                                       + np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
+            
+            # -------- check for convergence --------
+            
+            if np.sum(np.abs(self.W - W_old)) < tol:
+            # if np.sum(np.abs(new_likelihood - old_likelihood)) < tol:
+                break
+            
+            else:
+                W_old = np.copy(self.W)
             old_likelihood = new_likelihood
-            new_likelihood = self.log_likelihood()
+            new_likelihood = self.negative_log_likelihood()
             log_likelihoods.append(new_likelihood)
+
+        # compute final parameters
+        self.W = normalize_cols(project_positive(self.W))
+        self.G = np.array([self.W.T @ self.K[i] @ self.W - np.eye(self.k) for i in range(self.N)])
 
         return log_likelihoods
                                               
     def print_params(self):
-        
-        print('v:','\n', self.v, '\n', 'G:', '\n', self.G, '\n',\
-             'W:', '\n', self.W, '\n', 'sigmas:', '\n', self.sigmas)
-
+        # print("v:\n", self.v)
+        print("G:\n", self.G)
+        print("W\n", self.W)
+        print("sigmas\n", self.sigmas)
