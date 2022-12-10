@@ -159,7 +159,8 @@ class Connectivity:
             W_grad = np.zeros(self.W.shape)
             
             for i in range(self.N):
-                W_grad += 1/self.N * self.K[i] @ self.W @ A_tilde[i]
+                W_grad = W_grad + 1/self.N * self.K[i] @ self.W @ A_tilde[i]
+                #TODO: check casting error when using "+=", error: Cannot cast ufunc 'add' output from dtype('complex128') to dtype('float64') with casting rule 'same_kind'
             
             penalty = reg * (self.W @ self.W.T @ self.W - self.W)                                 
             ortho = self.W @ self.lagrange
@@ -177,7 +178,8 @@ class Connectivity:
             
             self.update_A()
             
-            self.lagrange += reg * (self.W.T @ self.W - np.eye(self.k))
+            self.lagrange = self.lagrange + reg * (self.W.T @ self.W - np.eye(self.k))
+            #TODO: check casting error when using "+=", error: Cannot cast ufunc 'add' output from dtype('complex128') to dtype('float64') with casting rule 'same_kind'
             
             # update G and sigmas
             self.G = np.array([self.W.T @ self.K[i] @ self.W - np.eye(self.k) for i in range(self.N)])
