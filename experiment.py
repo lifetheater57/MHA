@@ -36,14 +36,14 @@ for i in range(len(N)):
         model.fit(**fit_params)
         nll = model.negative_log_likelihood(data_test)
 
-        df_temp = pd.Series({
+        row = pd.DataFrame([{
                 "x": sizes[j],
                 "y": nll,
                 "row": f"{i} class{'es' if i > 1 else ''}",
                 "column": "Relative NLL",
                 "Method": j,
-            })
-        df = pd.concat([df, df_temp])
+        }])
+        df = pd.concat([df, row])
 fig = figure(df)
 filename = f"plot-" + datetime.now().strftime("%Y%m%d%H%M%S")
 io.write_html(fig, filename + ".html")
