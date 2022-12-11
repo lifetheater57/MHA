@@ -54,7 +54,11 @@ class Connectivity:
         self.W = relu(self.W)
 
     
-    def negative_log_likelihood(self):
+    def negative_log_likelihood(self, X=None):
+
+        if X is None:
+            X = self.X
+        
         log_likelihood = 0
         
         for i in range(self.N):
@@ -62,9 +66,9 @@ class Connectivity:
             
             det_sigma = np.log(np.linalg.det(self.sigmas[i]))
             
-            S = np.linalg.lstsq(self.sigmas[i], self.X[i].T, rcond=None)[0]
+            S = np.linalg.lstsq(self.sigmas[i], X[i].T, rcond=None)[0]
             
-            mahalanobis = np.einsum('ij, ji -> i', self.X[i], S)
+            mahalanobis = np.einsum('ij, ji -> i', X[i], S)
             
             log_likelihood += 0.5*(cst + det_sigma + mahalanobis)
         
