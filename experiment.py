@@ -44,7 +44,7 @@ for i in range(len(N)):
             "Method": "MHA",
         }])
         df = pd.concat([df, row])
-fig = figure(df)
+fig = figure(df, log_x=True)
 filename = f"plot-" + datetime.now().strftime("%Y%m%d%H%M%S")
 io.write_html(fig, filename + ".html")
 io.write_image(fig, filename + ".png")
