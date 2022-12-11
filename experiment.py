@@ -9,12 +9,54 @@ from rich.progress import track
 
 from plotly import io
 
-N = [1]#, 2]
+# Constants
+W_title = "W recovery"
+G_i_title = "G^(i) recovery"
+NLL_title = "Negative log-likelihood"
+
+MHA_label = "MHA"
+FA_label = "Factor Anal."
+NN_PCA_label = "Non-neg. PCA"
+SC_label = "Sample Cov."
+LW_label = "Ledoit-Wolf"
+G_label = "Glasso"
+DC_label = "Diag. Cov."
+
+method_column = "Method"
+
+# Data config
+N = [1, 2]
 p = 50
 k = 5
 seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.9
+
+# Figure config
+figure_config = {
+    "rows": {
+        "count": len(N),
+        "title": [f"{N[i]} class{'es' if N[i] > 1 else ''}" for i in range(len(N))],
+    },
+    "columns": {
+        "count": 3,
+        "title": [W_title, G_i_title, NLL_title],
+        "x": "log_10(n)",
+        "y": ["log_10(Sq. Error)", "log_10(Sq. Error)", "Relative NLL"],
+        method_column: [[MHA_label]] * 3,
+    },
+}
+
+def get_at(param, index):
+    """
+    Function to ease the access to parameters.
+    """
+    if type(param) == str:
+        return param
+    elif type(param) == list:
+        return param[index]
+    else:
+        raise Exception("Unsupported parameter type. Should be either str or list(str).")
 
 print("Running experiments...")
 df = pd.DataFrame()
@@ -41,8 +83,8 @@ for i in range(len(N)):
         row = pd.DataFrame([{
             "x": sizes[j],
             "y": nll,
-            "row": f"{N[i]} class{'es' if N[i] > 1 else ''}",
-            "column": "Relative NLL",
+            "row": get_at(figure_config["rows"]["title"], i),
+            "column": "Negative log-likelihood",
             "Method": "MHA",
         }])
         df = pd.concat([df, row])
