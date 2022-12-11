@@ -69,26 +69,29 @@ for i in range(len(N)):
         train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
         data_train = data[:, :train_size]
         data_test = data[:, train_size:]
-
-        init_params = {
-            "X": data_train,
-            "k": k,
-        }
-        fit_params = {}
-        model = Connectivity(**init_params)
-        model.fit(**fit_params)
-        # Compute and save the metrics
-        nll = model.negative_log_likelihood(data_test)
-
-        row = pd.DataFrame([{
-            "x": sizes[j],
-            "y": nll,
-            "row": get_at(figure_config["rows"]["title"], i),
-            "column": "Negative log-likelihood",
-            "Method": "MHA",
-        }])
-        df = pd.concat([df, row])
-fig = figure(df, log_x=True)
+        ## MHA
+        if MHA_label in get_at(figure_config["columns"][method_column], -1):
+            # Fit the model
+            init_params = {
+                "X": data_train,
+                "k": k,
+            }
+            fit_params = {}
+            model = Connectivity(**init_params)
+            model.fit(**fit_params)
+            if NLL_title in figure_config["columns"]["title"]:
+                # Compute and save the metrics
+                nll = model.negative_log_likelihood(data_test)
+                c = figure_config["columns"]["title"].index(NLL_title)
+                row = pd.DataFrame([{
+                    "x": sizes[j],
+                    "y": nll,
+                    "row": get_at(figure_config["rows"]["title"], i),
+                    "column": "Negative log-likelihood",
+                    "Method": "MHA",
+                }])
+                df = pd.concat([df, row])
+fig = figure(df, figure_config)
 filename = f"plot-" + datetime.now().strftime("%Y%m%d%H%M%S")
 io.write_html(fig, filename + ".html")
 io.write_image(fig, filename + ".png")
