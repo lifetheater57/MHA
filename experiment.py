@@ -16,13 +16,14 @@ seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.9
 
-df = pd.DataFrame()
 print("Running experiments...")
+df = pd.DataFrame()
 for i in range(len(N)):
     print(f"\tUsing {N[i]} classes.")
     for j in track(range(len(sizes)), "Running"):
+        # Generate data
         data = next(GaussianGenerator(N[i], p, k, seed, np.round(sizes[j] / N[i]).astype(int)))
-
+        # Split data
         train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
         data_train = data[:, :train_size]
         data_test = data[:, train_size:]
@@ -34,6 +35,7 @@ for i in range(len(N)):
         fit_params = {}
         model = Connectivity(**init_params)
         model.fit(**fit_params)
+        # Compute and save the metrics
         nll = model.negative_log_likelihood(data_test)
 
         row = pd.DataFrame([{
