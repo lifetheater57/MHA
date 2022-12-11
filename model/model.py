@@ -72,7 +72,7 @@ class Connectivity:
             
             log_likelihood += 0.5*(cst + det_sigma + mahalanobis)
         
-        return log_likelihood.sum()/(self.n * self.N)
+        return log_likelihood.sum() / np.prod(X.shape[:2])
     
     def update_v(self, lr):
         for i in range(self.N):
