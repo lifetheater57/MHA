@@ -16,7 +16,7 @@ seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.9
 
-df = pd.DataFrame(columns=["x", "y", "row", "column", "Method"])
+df = pd.DataFrame()
 print("Running experiments...")
 for i in range(len(N)):
     print(f"\tUsing {N[i]} classes.")
