@@ -37,11 +37,11 @@ for i in range(len(N)):
         nll = model.negative_log_likelihood(data_test)
 
         row = pd.DataFrame([{
-                "x": sizes[j],
-                "y": nll,
-                "row": f"{i} class{'es' if i > 1 else ''}",
-                "column": "Relative NLL",
-                "Method": j,
+            "x": sizes[j],
+            "y": nll,
+            "row": f"{N[i]} class{'es' if N[i] > 1 else ''}",
+            "column": "Relative NLL",
+            "Method": "MHA",
         }])
         df = pd.concat([df, row])
 fig = figure(df)
