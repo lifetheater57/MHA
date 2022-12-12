@@ -7,7 +7,7 @@ from visualization.figure import figure
 from model.model import Connectivity
 from rich.progress import track
 
-from plotly import io
+import plotly.io as pio
 
 # Constants
 W_title = "W recovery"
@@ -93,5 +93,5 @@ for i in range(len(N)):
                 df = pd.concat([df, row])
 fig = figure(df, figure_config)
 filename = f"plot-" + datetime.now().strftime("%Y%m%d%H%M%S")
-io.write_html(fig, filename + ".html")
-io.write_image(fig, filename + ".png")
+pio.write_html(fig, filename + ".html")
+pio.write_image(fig, filename + ".png")
