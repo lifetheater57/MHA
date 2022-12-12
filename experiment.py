@@ -51,6 +51,8 @@ figure_config = {
         "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
         "y_confidence": ["range"] * 3,
         "Method": [[MHA_label]] * 3,
+        "log_x": [False] * 3,
+        "log_y": [False] * 3,
     },
 }
 

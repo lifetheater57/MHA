@@ -67,6 +67,17 @@ def figure(df: pd.DataFrame, config: dict):
                 fig.update_yaxes(title_text=get_at(config["columns"]["y"], j), row=i+1, col=j+1)
 
     # Update title and height
-    fig.update_layout(height=650, width=650, template="plotly_dark")
-    
+    fig.update_layout(height=650, width=650, template="plotly_dark")#title_text="Customizing Subplot Axes", 
+
+
+    filename = f"output/plot-"# + datetime.now().strftime("%Y%m%d%H%M%S")
+    pio.write_html(fig, filename + ".html")
+    pio.write_image(fig, filename + ".png")
+
     return fig
+
+df = pd.read_csv("output/data.csv")
+with open("output/config.json") as file:
+    figure_config = json.load(file)
+
+figure(df, figure_config)
