@@ -1,3 +1,5 @@
+import json
+import os
 from datetime import datetime
 
 import numpy as np
@@ -93,7 +95,12 @@ for i in range(len(N)):
                     "Method": "MHA",
                 }])
                 df = pd.concat([df, row])
+if not os.path.exists("output"):
+    os.makedirs("output")
+df.to_csv("output/data.csv")
+with open("output/config.json", "w+") as file:
+    file.write(json.dumps(figure_config))
 fig = figure(df, figure_config)
-filename = f"plot-" + datetime.now().strftime("%Y%m%d%H%M%S")
+filename = f"output/plot-" + datetime.now().strftime("%Y%m%d%H%M%S")
 pio.write_html(fig, filename + ".html")
 pio.write_image(fig, filename + ".png")
