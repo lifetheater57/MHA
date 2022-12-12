@@ -1,3 +1,4 @@
+#%%
 from typing import Tuple, Union
 
 import numpy as np
@@ -81,3 +82,24 @@ class GaussianGenerator(object):
         X = np.array([[np.random.multivariate_normal(self.W @ z_i, v_i * np.eye(self.p)) for z_i in Z_i] for Z_i, v_i in zip(Z, self.v)])
         return X
 
+# %%
+gen = GaussianGenerator(10, 50, 4, 6269, 20)
+next(gen)
+# %%
+N = 10
+p = 20
+k = 5
+
+# Create factor loading matrix W
+# Constraints on F: orthonormal and non-negative
+indexes = np.random.randint(0, k, size=p)
+W = np.random.uniform(0, 1, size=(p, k))
+W = W * np.eye(k)[indexes]
+W /= np.linalg.norm(W, axis=0)
+
+# Create latent variable covariance G_i
+# We use a triangular matrix to enforce a positive semi-definite covariance matrix
+G = [np.tril(X) @ np.tril(X).T for X in np.random.normal(size=(N, k, k))]
+
+v = np.random.normal(size=N)
+# %%

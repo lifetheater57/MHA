@@ -1,3 +1,4 @@
+#%%
 import json
 import os
 from datetime import datetime
@@ -30,7 +31,7 @@ lg10_label = r"$log_{10}(n)$"
 lg10_sq_err_label = r"$log_{10}(\text{Sq. Error})$"
 rel_NLL_label = r"$\text{Relative NLL}$"
 
-# Data config
+#%%
 N = [1, 2]
 p = 50
 k = 5
