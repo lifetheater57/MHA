@@ -58,7 +58,8 @@ for i in range(len(N)):
     print(f"\tUsing {N[i]} classes.")
     for j in track(range(len(sizes)), "Running"):
         # Generate data
-        data = next(GaussianGenerator(N[i], p, k, seed, np.round(sizes[j] / N[i]).astype(int)))
+        generator = GaussianGenerator(N[i], p, k, seed, np.round(sizes[j] / N[i]).astype(int))
+        data = next(generator)
         # Split data
         train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
         data_train = data[:, :train_size]
@@ -73,16 +74,24 @@ for i in range(len(N)):
             fit_params = {}
             model = Connectivity(**init_params)
             model.fit(**fit_params)
-            if NLL_title in figure_config["columns"]["title"]:
-                # Compute and save the metrics
-                nll = model.negative_log_likelihood(data_test)
-                c = figure_config["columns"]["title"].index(NLL_title)
+
+            for c, title in enumerate(figure_config["columns"]["title"]):
+                # Compute and save the metric
+                value = None
+                if title == W_title:
+                    #TODO: implement log-sum-exp
+                    value = np.log10(np.sum((model.W - generator.W)**2))
+                elif title == G_i_title:
+                    #TODO: implement log-sum-exp
+                    value = np.log10(np.sum((model.G - generator.G)**2))
+                elif title == NLL_title:
+                    value = model.negative_log_likelihood(data_test)
                 row = pd.DataFrame([{
-                    "x": sizes[j],
-                    "y": nll,
+                    get_at(figure_config["columns"]["x"], c): np.log10(sizes[j]),
+                    get_at(figure_config["columns"]["y"], c): value,
                     "row": get_at(figure_config["rows"]["title"], i),
-                    "column": "Negative log-likelihood",
-                    "Method": "MHA",
+                    "column": get_at(figure_config["columns"]["title"], c),
+                    "Method": MHA_label,
                 }])
                 df = pd.concat([df, row])
 if not os.path.exists("output"):
