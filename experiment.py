@@ -93,12 +93,12 @@ for i in range(len(N)):
                         measures[NLL_title] = model.negative_log_likelihood(data_test)
                 df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
         
-        if MHA_label in get_at(figure_config["columns"]["Method"], -1):
+        for method in df_iteration["Method"].unique():
             for c, title in enumerate(figure_config["columns"]["title"]):
                 # Save the metric
                 mean = None
                 var = None
-                method_mask = (df_iteration["Method"] == MHA_label)
+                method_mask = (df_iteration["Method"] == method)
                 if title == W_title:
                     mean = df_iteration.loc[method_mask, W_title].mean()
                     #TODO: check if this is the right confidence measure for 95% CI
@@ -117,7 +117,7 @@ for i in range(len(N)):
                     get_at(figure_config["columns"]["y_confidence"], c): var,
                     "row": get_at(figure_config["rows"]["title"], i),
                     "column": get_at(figure_config["columns"]["title"], c),
-                    "Method": MHA_label,
+                    "Method": method,
                 }])
                 df = pd.concat([df, row])
                 
