@@ -46,6 +46,8 @@ figure_config = {
     "columns": {
         "count": 3,
         "title": [W_title, G_i_title, NLL_title],
+        "x": lg10_label,
+        "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
         "Method": [[MHA_label]] * 3,
     },
 }
