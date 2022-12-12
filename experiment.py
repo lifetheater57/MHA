@@ -61,11 +61,8 @@ for i in range(len(N)):
     for j in track(range(len(sizes)), "Running"):
         # Generate data
         generator = GaussianGenerator(N[i], p, k, seed, np.round(sizes[j] / N[i]).astype(int))
-        # TODO: scale up with df to support multiple methods
-        W_recovery = []
-        G_recovery = []
-        nll = []
-        for _ in range(repetition):
+        df_iteration = pd.DataFrame()
+        for iteration in range(repetition):
             data = next(generator)
             # Split data
             train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
@@ -82,35 +79,40 @@ for i in range(len(N)):
                 model = Connectivity(**init_params)
                 model.fit(**fit_params)
 
+                measures = {
+                    "iteration": iteration,
+                    "Method": MHA_label,
+                    }
                 for c, title in enumerate(figure_config["columns"]["title"]):
                     # Compute the metric
-                    value = None
                     if title == W_title:
                         #TODO: implement log-sum-exp
-                        W_recovery.append(np.log10(np.sum((model.W - generator.W)**2)))
+                        measures[W_title] = np.log10(np.sum((model.W - generator.W)**2))
                     elif title == G_i_title:
                         #TODO: implement log-sum-exp
-                        G_recovery.append(np.log10(np.sum((model.G - generator.G)**2)))
+                        measures[G_i_title] = np.log10(np.sum((model.G - generator.G)**2))
                     elif title == NLL_title:
-                        nll.append(model.negative_log_likelihood(data_test))
+                        measures[NLL_title] = model.negative_log_likelihood(data_test)
+                df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
         
         if MHA_label in get_at(figure_config["columns"]["Method"], -1):
             for c, title in enumerate(figure_config["columns"]["title"]):
                 # Save the metric
                 mean = None
                 var = None
+                method_mask = (df_iteration["Method"] == MHA_label)
                 if title == W_title:
-                    mean = np.mean(W_recovery)
-                    #TODO: check if this is the right confidence measure
-                    var = np.var(W_recovery)
+                    mean = df_iteration.loc[method_mask, W_title].mean()
+                    #TODO: check if this is the right confidence measure for 95% CI
+                    var = 1.96 * np.sqrt(df_iteration.loc[method_mask, W_title].var() / method_mask.sum())
                 elif title == G_i_title:
-                    mean = np.mean(G_recovery)
-                    #TODO: check if this is the right confidence measure
-                    var = np.var(G_recovery)
+                    mean = df_iteration.loc[method_mask, G_i_title].mean()
+                    #TODO: check if this is the right confidence measure for 95% CI
+                    var = 1.96 * np.sqrt(df_iteration.loc[method_mask, G_i_title].var() / method_mask.sum())
                 elif title == NLL_title:
-                    mean = np.mean(nll)
-                    #TODO: check if this is the right confidence measure
-                    var = np.var(nll)
+                    mean = df_iteration.loc[method_mask, NLL_title].mean()
+                    #TODO: check if this is the right confidence measure for 95% CI
+                    var = 1.96 * np.sqrt(df_iteration.loc[method_mask, NLL_title].var() / method_mask.sum())
                 row = pd.DataFrame([{
                     get_at(figure_config["columns"]["x"], c): np.log10(sizes[j]),
                     get_at(figure_config["columns"]["y"], c): mean,
