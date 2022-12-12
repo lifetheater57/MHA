@@ -11,8 +11,8 @@ from visualization.config import get_at
 
 def figure(df: pd.DataFrame, config: dict):
     # Initialize figure with subplots
-    n_row = config["rows"]["count"]
-    n_columns = config["columns"]["count"]
+    n_row = len(config["rows"]["title"])
+    n_columns = len(config["columns"]["title"])
     fig = make_subplots(
         rows=n_row,
         cols=n_columns,

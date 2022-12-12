@@ -41,11 +41,9 @@ repetition = 2
 # Figure config
 figure_config = {
     "rows": {
-        "count": len(N),
         "title": [f"$\\text{{{N[i]} class{'es' if N[i] > 1 else ''}}}$" for i in range(len(N))],
     },
     "columns": {
-        "count": 3,
         "title": [W_title, G_i_title, NLL_title],
         "x": lg10_label,
         "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
