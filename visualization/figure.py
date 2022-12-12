@@ -32,8 +32,20 @@ def figure(df: pd.DataFrame, config: dict):
                 color = colors[method]
                 x = df.loc[mask, get_at(config["columns"]["x"], j)]
                 y = df.loc[mask, get_at(config["columns"]["y"], j)]
-                fig.add_trace(go.Scatter(x=x, y=y, mode="lines", name=method, showlegend=show_legend, marker=dict(color=color), legendgroup=method), row=i+1, col=j+1)
-
+                fig.add_trace(
+                    go.Scatter(
+                        x=x, 
+                        y=y, 
+                        mode="lines", 
+                        name=method, 
+                        showlegend=show_legend, 
+                        marker=dict(color=color), 
+                        legendgroup=method
+                    ), 
+                    row=i+1, 
+                    col=j+1
+                )
+                
                 # Update axis properties
                 fig.update_xaxes(title_text=get_at(config["columns"]["x"], j), row=i+1, col=j+1)
                 fig.update_yaxes(title_text=get_at(config["columns"]["y"], j), row=i+1, col=j+1)
