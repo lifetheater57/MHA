@@ -9,6 +9,7 @@ from rich.progress import track
 
 from data.gaussian_generator import GaussianGenerator
 from model.model import Connectivity
+from visualization.config import get_at
 from visualization.figure import figure
 
 # Constants
@@ -48,17 +49,6 @@ figure_config = {
         "Method": [[MHA_label]] * 3,
     },
 }
-
-def get_at(param, index):
-    """
-    Function to ease the access to parameters.
-    """
-    if type(param) == str:
-        return param
-    elif type(param) == list:
-        return param[index]
-    else:
-        raise Exception("Unsupported parameter type. Should be either str or list(str).")
 
 print("Running experiments...")
 df = pd.DataFrame()
