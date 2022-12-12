@@ -45,9 +45,7 @@ figure_config = {
     "columns": {
         "count": 3,
         "title": [W_title, G_i_title, NLL_title],
-        "x": "log_10(n)",
-        "y": ["log_10(Sq. Error)", "log_10(Sq. Error)", "Relative NLL"],
-        method_column: [[MHA_label]] * 3,
+        "Method": [[MHA_label]] * 3,
     },
 }
 
@@ -74,7 +72,7 @@ for i in range(len(N)):
         data_train = data[:, :train_size]
         data_test = data[:, train_size:]
         ## MHA
-        if MHA_label in get_at(figure_config["columns"][method_column], -1):
+        if MHA_label in get_at(figure_config["columns"]["Method"], -1):
             # Fit the model
             init_params = {
                 "X": data_train,
