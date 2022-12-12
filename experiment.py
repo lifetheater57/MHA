@@ -36,6 +36,7 @@ k = 5
 seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.9
+repetition = 2
 
 # Figure config
 figure_config = {
@@ -48,6 +49,7 @@ figure_config = {
         "title": [W_title, G_i_title, NLL_title],
         "x": lg10_label,
         "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
+        "y_confidence": ["range"] * 3,
         "Method": [[MHA_label]] * 3,
     },
 }
@@ -59,41 +61,66 @@ for i in range(len(N)):
     for j in track(range(len(sizes)), "Running"):
         # Generate data
         generator = GaussianGenerator(N[i], p, k, seed, np.round(sizes[j] / N[i]).astype(int))
-        data = next(generator)
-        # Split data
-        train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
-        data_train = data[:, :train_size]
-        data_test = data[:, train_size:]
-        ## MHA
-        if MHA_label in get_at(figure_config["columns"]["Method"], -1):
-            # Fit the model
-            init_params = {
-                "X": data_train,
-                "k": k,
-            }
-            fit_params = {}
-            model = Connectivity(**init_params)
-            model.fit(**fit_params)
+        # TODO: scale up with df to support multiple methods
+        W_recovery = []
+        G_recovery = []
+        nll = []
+        for _ in range(repetition):
+            data = next(generator)
+            # Split data
+            train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
+            data_train = data[:, :train_size]
+            data_test = data[:, train_size:]
+            ## MHA
+            if MHA_label in get_at(figure_config["columns"]["Method"], -1):
+                # Fit the model
+                init_params = {
+                    "X": data_train,
+                    "k": k,
+                }
+                fit_params = {}
+                model = Connectivity(**init_params)
+                model.fit(**fit_params)
 
+                for c, title in enumerate(figure_config["columns"]["title"]):
+                    # Compute the metric
+                    value = None
+                    if title == W_title:
+                        #TODO: implement log-sum-exp
+                        W_recovery.append(np.log10(np.sum((model.W - generator.W)**2)))
+                    elif title == G_i_title:
+                        #TODO: implement log-sum-exp
+                        G_recovery.append(np.log10(np.sum((model.G - generator.G)**2)))
+                    elif title == NLL_title:
+                        nll.append(model.negative_log_likelihood(data_test))
+        
+        if MHA_label in get_at(figure_config["columns"]["Method"], -1):
             for c, title in enumerate(figure_config["columns"]["title"]):
-                # Compute and save the metric
-                value = None
+                # Save the metric
+                mean = None
+                var = None
                 if title == W_title:
-                    #TODO: implement log-sum-exp
-                    value = np.log10(np.sum((model.W - generator.W)**2))
+                    mean = np.mean(W_recovery)
+                    #TODO: check if this is the right confidence measure
+                    var = np.var(W_recovery)
                 elif title == G_i_title:
-                    #TODO: implement log-sum-exp
-                    value = np.log10(np.sum((model.G - generator.G)**2))
+                    mean = np.mean(G_recovery)
+                    #TODO: check if this is the right confidence measure
+                    var = np.var(G_recovery)
                 elif title == NLL_title:
-                    value = model.negative_log_likelihood(data_test)
+                    mean = np.mean(nll)
+                    #TODO: check if this is the right confidence measure
+                    var = np.var(nll)
                 row = pd.DataFrame([{
                     get_at(figure_config["columns"]["x"], c): np.log10(sizes[j]),
-                    get_at(figure_config["columns"]["y"], c): value,
+                    get_at(figure_config["columns"]["y"], c): mean,
+                    get_at(figure_config["columns"]["y_confidence"], c): var,
                     "row": get_at(figure_config["rows"]["title"], i),
                     "column": get_at(figure_config["columns"]["title"], c),
                     "Method": MHA_label,
                 }])
                 df = pd.concat([df, row])
+                
 if not os.path.exists("output"):
     os.makedirs("output")
 df.to_csv("output/data.csv")
