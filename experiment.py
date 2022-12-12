@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import plotly.io as pio
 from rich.progress import track
+from sklearn.decomposition import FactorAnalysis
 
 from data.gaussian_generator import GaussianGenerator
 from model.model import Connectivity
@@ -66,6 +67,35 @@ for i in range(len(N)):
             train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
             data_train = data[:, :train_size]
             data_test = data[:, train_size:]
+            # Factor Analysis
+            if FA_label in get_at(figure_config["columns"]["Method"], -1):
+                # Fit the model
+                init_params = {
+                    "n_components": k,
+                    "rotation": "varimax",
+                }
+                fit_params = {
+                    "X": data_train,
+                }
+                model = FactorAnalysis(**init_params)
+                model.fit(**fit_params)
+
+                measures = {
+                    "iteration": iteration,
+                    "Method": FA_label,
+                    }
+                for c, title in enumerate(figure_config["columns"]["title"]):
+                    # Compute the metric
+                    if title == W_title:
+                        #TODO: implement log-sum-exp
+                        measures[W_title] = np.log10(np.sum((model.components_.T - generator.W)**2))
+                    elif title == G_i_title:
+                        #TODO: implement log-sum-exp
+                        measures[G_i_title] = np.log10(np.sum((model.get_covariance() - generator.G)**2))
+                    elif title == NLL_title:
+                        measures[NLL_title] = model.score(data_test)
+                df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
+            
             ## MHA
             if MHA_label in get_at(figure_config["columns"]["Method"], -1):
                 # Fit the model
