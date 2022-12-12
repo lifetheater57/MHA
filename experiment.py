@@ -10,9 +10,9 @@ from model.model import Connectivity
 from visualization.figure import figure
 
 # Constants
-W_title = "W recovery"
-G_i_title = "G^(i) recovery"
-NLL_title = "Negative log-likelihood"
+W_title = r"$W \text{ recovery}$"
+G_i_title = r"$G^{(i)}\text{ recovery}$"
+NLL_title = r"$\text{Negative log-likelihood}$"
 
 MHA_label = "MHA"
 FA_label = "Factor Anal."
@@ -22,7 +22,9 @@ LW_label = "Ledoit-Wolf"
 G_label = "Glasso"
 DC_label = "Diag. Cov."
 
-method_column = "Method"
+lg10_label = r"$log_{10}(n)$"
+lg10_sq_err_label = r"$log_{10}(\text{Sq. Error})$"
+rel_NLL_label = r"$\text{Relative NLL}$"
 
 # Data config
 N = [1, 2]
@@ -36,7 +38,7 @@ split_ratio = 0.9
 figure_config = {
     "rows": {
         "count": len(N),
-        "title": [f"{N[i]} class{'es' if N[i] > 1 else ''}" for i in range(len(N))],
+        "title": [f"$\\text{{{N[i]} class{'es' if N[i] > 1 else ''}}}$" for i in range(len(N))],
     },
     "columns": {
         "count": 3,
