@@ -1,13 +1,13 @@
-import numpy as np
-import pandas as pd
 from datetime import datetime
 
-from data.gaussian_generator import GaussianGenerator
-from visualization.figure import figure
-from model.model import Connectivity
+import numpy as np
+import pandas as pd
+import plotly.io as pio
 from rich.progress import track
 
-import plotly.io as pio
+from data.gaussian_generator import GaussianGenerator
+from model.model import Connectivity
+from visualization.figure import figure
 
 # Constants
 W_title = "W recovery"

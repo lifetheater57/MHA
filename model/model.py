@@ -1,5 +1,6 @@
 from model.maths import *
 
+
 class Connectivity:
     
     def __init__(self, X, k):
