@@ -47,8 +47,6 @@ class ConnectivityEM:
                 
                 self.W[:,i] *= -1
                 
-        #self.W = ProjectNonNegative(self.W)
-    
     def negative_log_likelihood(self):
 
         log_likelihood = 0
@@ -71,8 +69,7 @@ class ConnectivityEM:
         
         old_likelihood = np.inf
         new_likelihood = 0
-        
-        
+      
         log_likelihoods = []
         iter = 0
         
