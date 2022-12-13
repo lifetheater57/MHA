@@ -44,7 +44,7 @@ class Connectivity:
         # initialize W
         evd_X_cov = np.linalg.eig(X_cov)
         
-        self.W = evd_X_cov[1][:, evd_X_cov[0].argsort()[::-1][:k]]
+        self.W = evd_X_cov[1][:, evd_X_cov[0].argsort()[::-1][:self.k]]
         
         # since evectors are sign invariant
         for i in range(self.W.shape[1]):
@@ -242,7 +242,7 @@ class ConnectivityEM:
         # initialize W
         evd_X_cov = np.linalg.eig(X_cov)
         
-        self.W = evd_X_cov[1][:, evd_X_cov[0].argsort()[::-1][:k]]
+        self.W = evd_X_cov[1][:, evd_X_cov[0].argsort()[::-1][:self.k]]
         
         # since evectors are sign invariant
         for i in range(self.W.shape[1]):
