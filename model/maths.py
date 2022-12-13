@@ -1,3 +1,5 @@
+import numpy as np
+
 def relu(X):
     X[X < 0] = 0
     return X

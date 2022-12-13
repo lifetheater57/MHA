@@ -1,4 +1,4 @@
-from Helper_Functions.py import * 
+from model.maths import *
 
 class Connectivity:
     
