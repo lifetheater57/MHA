@@ -1,3 +1,5 @@
+from Helper_Functions.py import * 
+
 class Connectivity:
     
     def __init__(self, X, k):
