@@ -167,7 +167,7 @@ class ConnectivityEM:
             
         self.G = np.array([self.W.T @ self.K[i] @ self.W - np.eye(self.k) for i in range(self.N)])
          
-        self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T                                       + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
+        self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
         
         self.lagrange = np.zeros((self.k,self.k))
         
@@ -226,9 +226,9 @@ class ConnectivityEM:
             W_grad = np.zeros(self.W.shape)
             
             # E-step
-            self.mu_z = np.array([[(self.W @ self.G[i]).T @                              np.linalg.lstsq(self.sigmas[i], self.X[i][j], rcond=None)[0] for j in range(self.n)] for i in range(self.N)])
+            self.mu_z = np.array([[(self.W @ self.G[i]).T @ np.linalg.lstsq(self.sigmas[i], self.X[i][j], rcond=None)[0] for j in range(self.n)] for i in range(self.N)])
         
-            self.sigmas_z = np.array([self.G[i] - (self.W @ self.G[i]).T @                                   np.linalg.lstsq(self.sigmas[i], self.W @ self.G[i], rcond=None)[0] for i in range(self.N)])
+            self.sigmas_z = np.array([self.G[i] - (self.W @ self.G[i]).T @  np.linalg.lstsq(self.sigmas[i], self.W @ self.G[i], rcond=None)[0] for i in range(self.N)])
         
             self.E_z = self.mu_z
             
@@ -239,7 +239,7 @@ class ConnectivityEM:
                 for j in range(self.n):
                     self.G[i] += self.E_z_2[i][j]
                     
-                    self.v[i] += (0.5*np.sum(self.X[i][j]**2) - self.E_z[i][j] @ self.W.T @ self.X[i][j]) +                                  0.5*np.trace(self.E_z_2[i][j] @ self.W.T @ self.W)
+                    self.v[i] += (0.5*np.sum(self.X[i][j]**2) - self.E_z[i][j] @ self.W.T @ self.X[i][j]) + 0.5*np.trace(self.E_z_2[i][j] @ self.W.T @ self.W)
                                    
                 self.G[i] /= self.n
                                    
@@ -272,7 +272,7 @@ class ConnectivityEM:
                 
                 self.G = np.array([self.W.T @ self.K[i] @ self.W - self.v[i]*np.eye(self.k) for i in range(self.N)])
             
-                self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T                                       + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
+                self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
                 
                 W_old = np.copy(self.W)
                 
@@ -280,7 +280,7 @@ class ConnectivityEM:
             
 
             
-            self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T                                       + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
+            self.sigmas = np.concatenate([(self.W @ self.G[i] @ self.W.T + self.v[i]*np.eye(self.p))[np.newaxis, ...] for i in range(self.N)])
         
             old_likelihood = new_likelihood
             new_likelihood = self.negative_log_likelihood()
