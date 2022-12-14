@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.io as pio
 from rich.progress import track
+from scipy.optimize import linear_sum_assignment
 from sklearn.decomposition import FactorAnalysis
 
 from data.gaussian_generator import GaussianGenerator
@@ -55,6 +56,16 @@ figure_config = {
         "log_y": [False] * 3,
     },
 }
+
+def find_assignment(W, W_true):
+    rows, cols = W.shape
+    C = np.zeros((cols,cols))
+    for i in range(cols):
+        for j in range(cols):
+            C[i,j] = np.linalg.norm(W[:,i] - W_true[:,j]) 
+
+    row_ind, col_ind = linear_sum_assignment(C)
+    return row_ind, col_ind
 
 print("Running experiments...")
 df = pd.DataFrame()
@@ -117,11 +128,13 @@ for i in range(len(N)):
                 for c, title in enumerate(figure_config["columns"]["title"]):
                     # Compute the metric
                     if title == W_title:
+                        W_aligned = model.W[:, find_assignment(model.W, generator.W)[1]]
                         #TODO: implement log-sum-exp
-                        measures[W_title] = np.log10(np.sum((model.W - generator.W)**2))
+                        measures[W_title] = np.log10(np.sum((W_aligned - generator.W)**2))
                     elif title == G_i_title:
                         #TODO: implement log-sum-exp
-                        measures[G_i_title] = np.log10(np.sum((model.G - generator.G)**2))
+                        G_aligned = model.G[:, find_assignment(model.W, generator.W)[1]]
+                        measures[G_i_title] = np.log10(np.sum((G_aligned - generator.G)**2))
                     elif title == NLL_title:
                         measures[NLL_title] = model.negative_log_likelihood(data_test)
                 df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
