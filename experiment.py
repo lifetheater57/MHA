@@ -38,7 +38,7 @@ k = 5
 seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.9
-repetition = 2
+fixed_test_size = False
 
 # Figure config
 figure_config = {
@@ -75,7 +75,11 @@ for i in range(len(N)):
         for iteration in range(repetition):
             data = next(generator)
             # Split data
-            train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
+            if not fixed_test_size:
+                train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
+            else:
+                train_size = sizes[j] - np.round((1 - split_ratio) * min(sizes) / N[i]).astype(int)
+            data_test = data[:, train_size:]
             data_train = data[:, :train_size]
             data_test = data[:, train_size:]
             # Factor Analysis
