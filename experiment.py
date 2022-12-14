@@ -50,7 +50,7 @@ figure_config = {
         "x": lg10_label,
         "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
         "y_confidence": ["range"] * 3,
-        "Method": [[MHA_label]] * 3,
+        "Method": [[MHA_label, FA_label]] * 3,
     },
 }
 
@@ -81,7 +81,6 @@ for i in range(len(N)):
                 train_size = sizes[j] - np.round((1 - split_ratio) * min(sizes) / N[i]).astype(int)
             data_test = data[:, train_size:]
             data_train = data[:, :train_size]
-            data_test = data[:, train_size:]
             # Factor Analysis
             if FA_label in get_at(figure_config["columns"]["Method"], -1):
                 # Fit the model
@@ -90,7 +89,7 @@ for i in range(len(N)):
                     "rotation": "varimax",
                 }
                 fit_params = {
-                    "X": data_train,
+                    "X": np.reshape(data_train, (np.prod(data_train.shape[:2]), data_train.shape[2])),
                 }
                 model = FactorAnalysis(**init_params)
                 model.fit(**fit_params)
@@ -101,14 +100,14 @@ for i in range(len(N)):
                     }
                 for c, title in enumerate(figure_config["columns"]["title"]):
                     # Compute the metric
+                    w = model.components_.T
                     if title == W_title:
-                        #TODO: implement log-sum-exp
-                        measures[W_title] = np.log10(np.sum((model.components_.T - generator.W)**2))
+                        measures[W_title] = np.log10(np.sum((w - generator.W)**2))
                     elif title == G_i_title:
-                        #TODO: implement log-sum-exp
-                        measures[G_i_title] = np.log10(np.sum((model.get_covariance() - generator.G)**2))
+                        #TODO: Compute the value here
+                        measures[G_i_title] = 0#np.log10(np.sum((model.get_covariance() - generator.G)**2))
                     elif title == NLL_title:
-                        measures[NLL_title] = model.score(data_test)
+                        measures[NLL_title] = -model.score(np.reshape(data_test, (np.prod(data_test.shape[:2]), data_train.shape[2])))
                 df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
             
             ## MHA
