@@ -53,6 +53,8 @@ class Connectivity:
                 self.W[:,i] *= -1
                 
         self.W = relu(self.W)
+        self.W = self.W.astype(float)
+        assert(self.W.dtype == float), f"W type is expected to be float, but is {self.W.dtype}"
 
     
     def negative_log_likelihood(self, X=None):
