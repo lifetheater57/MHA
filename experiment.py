@@ -37,8 +37,8 @@ p = 50
 k = 5
 seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
-split_ratio = 0.9
-fixed_test_size = False
+split_ratio = 0.5
+fixed_test_size = True
 repetition = 2
 
 # Figure config
