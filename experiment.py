@@ -80,7 +80,7 @@ for i in range(len(N)):
             if not fixed_test_size:
                 train_size = np.round(split_ratio * sizes[j] / N[i]).astype(int)
             else:
-                train_size = sizes[j] - np.round((1 - split_ratio) * min(sizes) / N[i]).astype(int)
+                train_size = np.round((sizes[j] - (1 - split_ratio) * min(sizes)) / N[i]).astype(int)
             data_test = data[:, train_size:]
             data_train = data[:, :train_size]
             # Factor Analysis
