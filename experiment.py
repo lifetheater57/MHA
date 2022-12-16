@@ -39,6 +39,7 @@ seed = 6269
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.9
 fixed_test_size = False
+repetition = 2
 
 # Figure config
 figure_config = {
@@ -136,7 +137,7 @@ for i in range(len(N)):
                         G_aligned = model.G[:, find_assignment(model.W, generator.W)[1]]
                         measures[G_i_title] = np.log10(np.sum((G_aligned - generator.G)**2))
                     elif title == NLL_title:
-                        measures[NLL_title] = model.negative_log_likelihood(data_test)
+                        measures[NLL_title] = model.negative_log_likelihood(data_test)# / (min(sizes) - train_size)
                 df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
         
         for method in df_iteration["Method"].unique():
