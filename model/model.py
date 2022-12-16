@@ -1,6 +1,8 @@
 from model.maths import *
 
 
+from scipy.stats import multivariate_normal
+
 class Connectivity:
     
     def __init__(self, X, k):
@@ -53,15 +55,8 @@ class Connectivity:
                 self.W[:,i] *= -1
                 
         self.W = relu(self.W)
-        self.W = self.W.astype(float)
-        assert(self.W.dtype == float), f"W type is expected to be float, but is {self.W.dtype}"
 
-    
-    def negative_log_likelihood(self, X=None):
-
-        if X is None:
-            X = self.X
-        
+    def negative_log_likelihood(self, X):
         log_likelihood = 0
         
         for i in range(self.N):
@@ -77,6 +72,7 @@ class Connectivity:
         
         return log_likelihood.sum() / np.prod(X.shape[:2])
     
+
     def update_v(self, lr):
         for i in range(self.N):
             d, V = np.linalg.eig(self.G[i])
@@ -89,16 +85,16 @@ class Connectivity:
             
             self.v[i] -= lr * (v_term_1 + v_term_2 + H_2)
         
-    def update_A(self):
+    def update_A(self, W):
         
-        W = project_positive(self.W).copy()
+        #W = project_positive(self.W).copy()
         
         for i in range(self.N):
             A_new = np.eye(self.k) - self.v[i]*np.linalg.pinv(W.T @ self.K[i] @ W)
         
             # check for negative eigenvalues
             if np.min(np.linalg.eig(A_new)[0]) <= 0:
-                A_new += np.eye(self.k)* np.abs(np.min(np.linalg.eig(A_new)[0]) + 0.01)
+                A_new += np.eye(self.k)* np.abs(np.min(np.linalg.eig(A_new)[0]) + 0.001)
             
             self.A[i] = A_new
     
@@ -125,7 +121,6 @@ class Connectivity:
                 stopBackTracking = True
                 
             else:
-                
                 alpha /= 2
                 iter += 1
                 
@@ -143,9 +138,8 @@ class Connectivity:
         W_old = np.copy(self.W)
         
         
-        self.update_A() # Update A once before the loop
+        self.update_A(self.W) # Update A once before the loop
         for iter in range(max_iter):
-
             A_tilde = np.array([0.5*A_i @ A_i - A_i for A_i in self.A])
             
             # Compute W_grad
@@ -170,7 +164,8 @@ class Connectivity:
             self.W = normalize_cols(self.W)
             
             # Update A
-            self.update_A()
+
+            self.update_A(normalize_cols(project_positive(self.W.copy())))
 
             # Update v if necessary
             if estimate_v:
@@ -192,7 +187,7 @@ class Connectivity:
 
             # Log information    
             old_likelihood = new_likelihood
-            new_likelihood = self.negative_log_likelihood()
+            new_likelihood = self.negative_log_likelihood(self.X)
             log_likelihoods.append(new_likelihood)
 
         # compute final parameters
