@@ -10,7 +10,7 @@ from scipy.optimize import linear_sum_assignment
 from sklearn.decomposition import FactorAnalysis
 
 from data.gaussian_generator import GaussianGenerator
-from model.model import Connectivity
+from model.model import Connectivity, ConnectivityEM
 from visualization.config import get_at
 from visualization.figure import figure
 
@@ -19,13 +19,14 @@ W_title = r"$W \text{ recovery}$"
 G_i_title = r"$G^{(i)}\text{ recovery}$"
 NLL_title = r"$\text{Negative log-likelihood}$"
 
-MHA_label = "MHA"
+MHA_label = "MHA SM"
 FA_label = "Factor Anal."
 NN_PCA_label = "Non-neg. PCA"
 SC_label = "Sample Cov."
 LW_label = "Ledoit-Wolf"
 G_label = "Glasso"
 DC_label = "Diag. Cov."
+EM_label = "MHA EM"
 
 lg10_label = r"$log_{10}(n)$"
 lg10_sq_err_label = r"$log_{10}(\text{Sq. Error})$"
@@ -51,7 +52,7 @@ figure_config = {
         "x": lg10_label,
         "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
         "y_confidence": ["range"] * 3,
-        "Method": [[MHA_label, FA_label]] * 3,
+        "Method": [[MHA_label, EM_label, FA_label]] * 3,
     },
 }
 
@@ -109,6 +110,33 @@ for i in range(len(N)):
                         measures[G_i_title] = 0#np.log10(np.sum((model.get_covariance() - generator.G)**2))
                     elif title == NLL_title:
                         measures[NLL_title] = -model.score(np.reshape(data_test, (np.prod(data_test.shape[:2]), data_train.shape[2])))
+                df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
+            
+            # EM
+            if EM_label in get_at(figure_config["columns"]["Method"], -1):
+                # Fit the model
+                init_params = {
+                    "X": data_train,
+                    "k": k,
+                }
+                fit_params = {}
+                model = ConnectivityEM(**init_params)
+                model.fit(**fit_params)
+
+                measures = {
+                    "iteration": iteration,
+                    "Method": EM_label,
+                    }
+                for c, title in enumerate(figure_config["columns"]["title"]):
+                    # Compute the metric
+                    if title == W_title:
+                        W_aligned = model.W[:, find_assignment(model.W, generator.W)[1]]
+                        measures[W_title] = np.log10(np.sum((W_aligned - generator.W)**2))
+                    elif title == G_i_title:
+                        G_aligned = model.G[:, find_assignment(model.W, generator.W)[1]]
+                        measures[G_i_title] = np.log10(np.sum((G_aligned - generator.G)**2))
+                    elif title == NLL_title:
+                        measures[NLL_title] = model.negative_log_likelihood(data_test)# / (min(sizes) - train_size)
                 df_iteration = pd.concat([df_iteration, pd.DataFrame([measures])])
             
             ## MHA
