@@ -48,7 +48,7 @@ figure_config = {
         "title": [f"$\\text{{{N[i]} class{'es' if N[i] > 1 else ''}}}$" for i in range(len(N))],
     },
     "columns": {
-        "title": [W_title, G_i_title, NLL_title],
+        "title": [W_title, NLL_title],
         "x": lg10_label,
         "y": [lg10_sq_err_label, lg10_sq_err_label, rel_NLL_label],
         "y_confidence": ["range"] * 3,
@@ -104,7 +104,7 @@ for i in range(len(N)):
                     # Compute the metric
                     w = model.components_.T
                     if title == W_title:
-                        measures[W_title] = np.log10(np.sum((w - generator.W)**2))
+                        measures[W_title] = np.log10(np.mean((w - generator.W)**2))
                     elif title == G_i_title:
                         #TODO: Compute the value here
                         measures[G_i_title] = 0#np.log10(np.sum((model.get_covariance() - generator.G)**2))
@@ -131,7 +131,7 @@ for i in range(len(N)):
                     # Compute the metric
                     if title == W_title:
                         W_aligned = model.W[:, find_assignment(model.W, generator.W)[1]]
-                        measures[W_title] = np.log10(np.sum((W_aligned - generator.W)**2))
+                        measures[W_title] = np.log10(np.mean((W_aligned - generator.W)**2))
                     elif title == G_i_title:
                         G_aligned = model.G[:, find_assignment(model.W, generator.W)[1]]
                         measures[G_i_title] = np.log10(np.sum((G_aligned - generator.G)**2))
@@ -159,7 +159,7 @@ for i in range(len(N)):
                     if title == W_title:
                         W_aligned = model.W[:, find_assignment(model.W, generator.W)[1]]
                         #TODO: implement log-sum-exp
-                        measures[W_title] = np.log10(np.sum((W_aligned - generator.W)**2))
+                        measures[W_title] = np.log10(np.mean((W_aligned - generator.W)**2))
                     elif title == G_i_title:
                         #TODO: implement log-sum-exp
                         G_aligned = model.G[:, find_assignment(model.W, generator.W)[1]]
