@@ -33,14 +33,14 @@ lg10_sq_err_label = r"$log_{10}(\text{Sq. Error})$"
 rel_NLL_label = r"$\text{Relative NLL}$"
 
 # Data config
-N = [1, 2]
+N = [1, 10]
 p = 50
 k = 5
-seed = 6269
+seed = 420
 sizes = [100, 200, 1000, 2000, 4000]
 split_ratio = 0.5
 fixed_test_size = True
-repetition = 2
+repetition = 10
 
 # Figure config
 figure_config = {
