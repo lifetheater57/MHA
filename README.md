@@ -1,4 +1,4 @@
-# Connectivity Estimation for High-Dimensional Data
+# Modular Hierarchical Analysis Implementation (Score Matching and EM)
 
 Implementation of method from https://arxiv.org/abs/1805.09567
 
